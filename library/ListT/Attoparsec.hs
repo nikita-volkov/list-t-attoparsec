@@ -16,15 +16,14 @@ textParser p =
   loop (P.parse p)
   where
     loop parse input =
-      lift (uncons input) >>= \case
-        Nothing -> mzero
-        Just (chunk, otherChunks) -> 
-          case parse chunk of
-            P.Done chunk' result -> 
-              cons result (textParser p (cons chunk' otherChunks))
-            P.Partial parse' -> 
-              loop parse' otherChunks
-            P.Fail _ contexts message -> 
-              lift $ throwError $ ParsingFailure message contexts
+      lift (uncons input) >>= maybe mzero (onUncons parse)
+    onUncons parse (chunk, otherChunks) =
+      case parse chunk of
+        P.Done chunk' result -> 
+          cons result (onUncons (P.parse p) (chunk', otherChunks))
+        P.Partial parse' -> 
+          loop parse' otherChunks
+        P.Fail _ contexts message -> 
+          lift $ throwError $ ParsingFailure message contexts
 
 
