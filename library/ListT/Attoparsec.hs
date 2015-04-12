@@ -7,7 +7,11 @@ import ListT
 import qualified Data.Attoparsec.Text as P
 
 
-textParser :: MonadError String m => P.Parser a -> Transformation m Text a
+data ParsingFailure =
+  ParsingFailure !String ![String]
+  deriving (Show, Eq, Ord, Data, Typeable, Generic)
+
+textParser :: MonadError ParsingFailure m => P.Parser a -> Transformation m Text a
 textParser p =
   loop (P.parse p)
   where
@@ -21,6 +25,6 @@ textParser p =
             P.Partial parse' -> 
               loop parse' otherChunks
             P.Fail _ contexts message -> 
-              lift $ throwError $ message <> ". Contexts: " <> show contexts <> "."
+              lift $ throwError $ ParsingFailure message contexts
 
 
