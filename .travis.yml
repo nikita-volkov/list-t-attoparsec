@@ -31,6 +31,7 @@ install:
       constraint_options=(
         "--constraint=text==1.0.*"
         "--constraint=attoparsec==0.10.*"
+        "--constraint=mtl-prelude==1.0.*"
       );
     fi;
   # Install the library dependencies
