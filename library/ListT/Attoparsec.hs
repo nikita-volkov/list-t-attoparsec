@@ -2,6 +2,7 @@ module ListT.Attoparsec where
 
 import BasePrelude hiding (cons, uncons)
 import MTLPrelude
+import Control.Monad.Catch
 import Data.Text (Text)
 import ListT
 import qualified Data.Attoparsec.Text as P
@@ -14,11 +15,13 @@ data ParsingFailure =
   ParsingFailure !String ![String]
   deriving (Show, Eq, Ord, Data, Typeable, Generic)
 
+instance Exception ParsingFailure
+
 -- |
 -- Given a text parser, produces 
 -- a transformation of a stream of text chunks into a stream of parsed results.
 -- In case of a parsing failure it raises a 'ParsingFailure' error in the base monad.
-textParser :: MonadError ParsingFailure m => P.Parser a -> Transformation m Text a
+textParser :: MonadThrow m => P.Parser a -> Transformation m Text a
 textParser p =
   loop (P.parse p)
   where
@@ -31,6 +34,6 @@ textParser p =
         P.Partial parse' -> 
           loop parse' otherChunks
         P.Fail _ contexts message -> 
-          lift $ throwError $ ParsingFailure message contexts
+          lift $ throwM $ ParsingFailure message contexts
 
 
