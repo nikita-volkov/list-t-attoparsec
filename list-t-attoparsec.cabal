@@ -3,7 +3,7 @@ name:
 version:
   0.2.0.0
 synopsis:
-description:
+  An "attoparsec" adapter for "list-t"
 category:
   Streaming, Parsing
 homepage:
