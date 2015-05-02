@@ -2,8 +2,8 @@ module ListT.Attoparsec where
 
 import BasePrelude hiding (cons, uncons)
 import Control.Monad.Trans.Either
+import Control.Monad.Trans.Class
 import Data.Either.Combinators
-import MTLPrelude hiding (Error)
 import Data.Text (Text)
 import ListT
 import qualified Data.Attoparsec.Text as P
@@ -34,6 +34,6 @@ textParser p =
         P.Partial parse' -> 
           loop parse' otherChunks
         P.Fail _ contexts message -> 
-          lift $ throwError $ Error message contexts
+          lift $ EitherT $ return $ Left $ Error message contexts
 
 
