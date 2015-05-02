@@ -36,4 +36,21 @@ textParser p =
         P.Fail _ contexts message -> 
           lift $ EitherT $ return $ Left $ Error message contexts
 
-
+-- |
+-- Consume only as much input as needed to run the provided parser once.
+-- Results in either a failure or the parsed result and the leftover stream.
+-- The failure value of 'Nothing' implies the end of input.
+consumeOne :: Monad m => P.Parser a -> ListT m Text -> m (Either (Maybe Error) (a, ListT m Text))
+consumeOne =
+  \p -> loop (P.parse p)
+  where
+    loop parse stream =
+      uncons stream >>= \case
+        Nothing -> return $ Left $ Nothing
+        Just (chunk, streamRemainder) -> case parse chunk of
+          P.Done chunk' result ->
+            return $ Right $ (result, cons chunk' streamRemainder)
+          P.Partial parse' ->
+            loop parse' streamRemainder
+          P.Fail _ contexts message ->
+            return $ Left $ Just $ Error message contexts
