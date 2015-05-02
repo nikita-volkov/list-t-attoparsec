@@ -7,6 +7,7 @@ import Data.Either.Combinators
 import Data.Text (Text)
 import ListT
 import qualified Data.Attoparsec.Text as P
+import qualified Data.Text as T
 
 
 -- |
@@ -49,7 +50,10 @@ consumeOne =
         Nothing -> return $ Left $ Nothing
         Just (chunk, streamRemainder) -> case parse chunk of
           P.Done chunk' result ->
-            return $ Right $ (result, cons chunk' streamRemainder)
+            return $ Right $ (result, stream')
+            where
+              stream' =
+                bool (cons chunk') id (T.null chunk') streamRemainder
           P.Partial parse' ->
             loop parse' streamRemainder
           P.Fail _ contexts message ->
