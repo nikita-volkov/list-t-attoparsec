@@ -1,8 +1,9 @@
 module ListT.Attoparsec where
 
 import BasePrelude hiding (cons, uncons)
-import MTLPrelude
-import Control.Monad.Catch
+import Control.Monad.Trans.Either
+import Data.Either.Combinators
+import MTLPrelude hiding (Error)
 import Data.Text (Text)
 import ListT
 import qualified Data.Attoparsec.Text as P
@@ -11,22 +12,21 @@ import qualified Data.Attoparsec.Text as P
 -- |
 -- A text message and a list of contexts,
 -- as per the failure in \"attoparsec\".
-data ParsingFailure =
-  ParsingFailure !String ![String]
+data Error =
+  Error !String ![String]
   deriving (Show, Eq, Ord, Data, Typeable, Generic)
 
-instance Exception ParsingFailure
 
 -- |
 -- Given a text parser, produces 
 -- a transformation of a stream of text chunks into a stream of parsed results.
--- In case of a parsing failure it raises a 'ParsingFailure' error in the base monad.
-textParser :: MonadThrow m => P.Parser a -> Transformation m Text a
+-- In case of a parsing failure it raises an 'Error' in the 'EitherT' monad over the base.
+textParser :: Monad m => P.Parser a -> ListT m Text -> ListT (EitherT Error m) a
 textParser p =
   loop (P.parse p)
   where
     loop parse input =
-      lift (uncons input) >>= maybe mzero (onUncons parse)
+      lift (lift (uncons input)) >>= maybe mzero (onUncons parse)
     onUncons parse (chunk, otherChunks) =
       case parse chunk of
         P.Done chunk' result -> 
@@ -34,6 +34,6 @@ textParser p =
         P.Partial parse' -> 
           loop parse' otherChunks
         P.Fail _ contexts message -> 
-          lift $ throwM $ ParsingFailure message contexts
+          lift $ throwError $ Error message contexts
 
 
