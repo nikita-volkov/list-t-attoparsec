@@ -14,7 +14,7 @@ main =
     context "sample 1" $ do
       let textStream = ListT.Text.stream 2 "abcdefg"
       context "result" $ do
-        result <- flip consumeOne textStream $ string "abc" *> string "de" *> char 'f'
+        result <- flip consume textStream $ string "abc" *> string "de" *> char 'f'
         context "head" $ do
           head <- return $ fmap fst result
           it "should be correct" $ shouldBe head (Right 'f')

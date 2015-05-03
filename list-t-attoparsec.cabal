@@ -1,7 +1,7 @@
 name:
   list-t-attoparsec
 version:
-  0.4.0.0
+  0.4.0.1
 synopsis:
   An "attoparsec" adapter for "list-t"
 category:
