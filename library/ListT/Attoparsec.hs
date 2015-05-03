@@ -40,7 +40,6 @@ textParser p =
 -- |
 -- Consume only as much input as needed to run the provided parser once.
 -- Results in either a failure or the parsed result and the leftover stream.
--- The failure value of 'Nothing' implies the end of input.
 consumeOne :: Monad m => P.Parser a -> ListT m Text -> m (Either Error (a, ListT m Text))
 consumeOne =
   \p -> loop (P.parse p)
