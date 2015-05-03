@@ -13,17 +13,16 @@ import qualified Data.Text as T
 -- |
 -- A text message and a list of contexts,
 -- as per the failure in \"attoparsec\".
-data Error =
-  Error !String ![String]
-  deriving (Show, Eq, Ord, Data, Typeable, Generic)
+type Error =
+  (Text, [Text])
 
 
 -- |
 -- Given a text parser, produces 
 -- a transformation of a stream of text chunks into a stream of parsed results.
 -- In case of a parsing failure it raises an 'Error' in the 'EitherT' monad over the base.
-textParser :: Monad m => P.Parser a -> ListT m Text -> ListT (EitherT Error m) a
-textParser p =
+stream :: Monad m => P.Parser a -> ListT m Text -> ListT (EitherT Error m) a
+stream p =
   loop (P.parse p)
   where
     loop parse input =
@@ -35,13 +34,13 @@ textParser p =
         P.Partial parse' -> 
           loop parse' otherChunks
         P.Fail _ contexts message -> 
-          lift $ EitherT $ return $ Left $ Error message contexts
+          lift $ EitherT $ return $ Left $ (,) (T.pack message) (map T.pack contexts)
 
 -- |
 -- Consume only as much input as needed to run the provided parser once.
 -- Results in either a failure or the parsed result and the leftover stream.
-consumeOne :: Monad m => P.Parser a -> ListT m Text -> m (Either Error (a, ListT m Text))
-consumeOne =
+consume :: Monad m => P.Parser a -> ListT m Text -> m (Either Error (a, ListT m Text))
+consume =
   \p -> loop (P.parse p)
   where
     loop parse stream =
@@ -59,4 +58,4 @@ consumeOne =
             P.Partial parse' ->
               loop parse' streamRemainder
             P.Fail _ contexts message ->
-              return $ Left $ Error message contexts
+              return $ Left $ (,) (T.pack message) (map T.pack contexts)
