@@ -1,7 +1,7 @@
 name:
   list-t-attoparsec
 version:
-  0.4.0.1
+  0.4.0.2
 synopsis:
   An "attoparsec" adapter for "list-t"
 category:
@@ -44,8 +44,8 @@ library
   default-language:
     Haskell2010
   build-depends:
-    attoparsec >= 0.10 && < 0.13,
-    text >= 1 && < 1.3,
+    attoparsec >= 0.10 && < 0.14,
+    text >= 1 && < 2,
     list-t == 0.4.*,
     either == 4.*,
     transformers >= 0.3 && < 0.5,
